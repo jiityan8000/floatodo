@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FloaTodo</title>
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:400,500|Roboto:400,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" integrity="sha384-vp86vTRFVJgpjF9jiIGPEEqYqlDwgyBgEF109VFjmqGmIY/Y4HV4d3Gp2irVfcrp" crossorigin="anonymous">
+    <link rel="apple-touch-icon" type="image/png" href="/favicons/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="/favicons/icon-192x192.png">
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+            background: #ffffff;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+            font-family: 100%;
+            color: #555;
+        }
+
+        input[type="text"]:focus {
+            outline: 0;
+        }
+
+        input[type=checkbox] {
+            display: none;
+        }
+
+        h2,
+        ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        h2,
+        button {
+            display: inline-block;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        .drag-and-drop li {
+            list-style: none;
+        }
+
+        #app {
+            height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .addtodo {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 28px;
+            background: #ffffff;
+            color: #333333;
+            box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.302), 0 1px 3px 1px rgba(60, 64, 67, 0.149);
+            cursor: pointer;
+            margin: 0 0 0 auto;
+            z-index: 2147483647;
+        }
+
+        .addtodo:hover,
+        .addtodo:focus {
+            box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.302), 0 4px 8px 3px rgba(60, 64, 67, 0.149);
+        }
+
+        .addtodo:active {
+            background: #f7f7f7;
+            box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.302), 0 1px 3px 1px rgba(60, 64, 67, 0.149);
+        }
+
+        .drag-and-drop {
+            display: inline-block;
+            margin: 10px;
+            background: #ffffff;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 1000;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .2));
+            transition: all 70ms ease-out;
+        }
+
+        .todo-main {
+            position: relative;
+            padding: 0 10px 15px 15px;
+        }
+
+        .drag-and-drop .todo-ttl {
+            border-style: none;
+            font-size: 25px;
+            font-weight: 500;
+            color: #333;
+            width: 277px;
+            transition: all 200ms 0s ease;
+            margin-bottom: 5px;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        .drag-and-drop .todo-rm,
+        .drag-and-drop li .task-rm {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #fff;
+            color: rgba(0, 0, 0, .54);
+            font-size: 18px;
+            border-style: none;
+            outline: 0;
+            cursor: pointer;
+        }
+
+        .drag-and-drop li .task-rm {
+            opacity: 0;
+        }
+
+        .drag-and-drop .todo-rm:hover,
+        .drag-and-drop li .task-rm:hover {
+            background: #f1f3f4;
+        }
+
+        .drag-and-drop .todo-rm:active,
+        .drag-and-drop li .task-rm:active {
+            background: #e8eaed;
+        }
+
+        .drag-and-drop li:hover .task-rm,
+        .drag-and-drop li .task-name:focus+.task-rm {
+            opacity: 1;
+        }
+
+        .drag-and-drop .task-name {
+            position: relative;
+            border-style: none;
+            font-size: 16px;
+            font-weight: 500;
+            width: 260px;
+            transition: all 200ms 0s ease;
+            border-bottom: 2px solid #ffffff;
+            box-sizing: border-box;
+        }
+
+        .drag-and-drop .task-box {
+            position: relative;
+            display: inline-block;
+            vertical-align: text-top;
+            width: 13px;
+            height: 13px;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 200ms 0s ease;
+        }
+
+        .drag-and-drop .task-box i {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 11px;
+            color: #fff;
+        }
+
+        .drag-and-drop .donebox {
+            background: #666;
+            border: 2px solid #666;
+        }
+
+        .drag-and-drop .donename {
+            color: #555;
+            text-decoration: line-through;
+        }
+
+        .drag-and-drop .child {
+            margin-left: 20px;
+        }
+
+        .drag-and-drop .child .task-name {
+            width: 240px;
+        }
+
+        .drag-and-drop .link .task-name {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .drag-and-drop .link .task-name:hover {
+            background: #eee;
+        }
+
+        .drag {
+            z-index: 1001;
+            transform: translateY(-4px);
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .14));
+            transition: none;
+        }
+
+        .drag-bar {
+            height: 22px;
+            padding: 7px 0;
+            cursor: grab;
+            box-sizing: border-box;
+        }
+
+        .drag-bar:active {
+            cursor: grabbing;
+        }
+
+        .drag-bar span {
+            display: block;
+            width: 60%;
+            height: 5px;
+            margin: 0 auto 0;
+            background: #dddddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" @mousemove="mmove($event)" @mouseup="mup($event)" @mouseleave="mup($event)" @touchmove="mmove($event)" @touchend="mup($event)">
+        <div class="addtodo" v-on:click="addTodo()">+</div>
+        <div v-for="todo in todos" class="drag-and-drop" :key="todo.id">
+            <div class="drag-bar" @mousedown="addClass(todo); mdown($event)" @touchstart="addClass(todo); mdown($event)"><span></span></div>
+            <div class="todo-main">
+                <input class="todo-ttl" type="text" v-model="todo.name" v-on:keydown.prevent.down="ttlDown(todo)" @keyup.enter="ttlEnter(todo)" @keypress="setcanPress($event)" @keyup="saveLocal()" @keydown="escape($event, todo, 0)">
+                <button class="todo-rm" v-on:click="removeTodo(todo)">×</button>
+                <ul>
+                    <li v-for="(task,index) in todo.tasks" v-bind:class="{child: task.isChild, link: task.isLink}">
+                        <input type="checkbox">
+                        <div class="task-box" v-on:click="doneTask(todo, task)" v-bind:class="{donebox: task.done}"><i class="fas fa-check"></i></div>
+                        <input class="task-name" type="text" v-model="todo.tasks[index].name" v-on:keydown.prevent.tab="enChildTask(todo, task)" v-on:keydown.prevent.shift.tab="deChildTask(todo, task)" v-on:keydown.prevent.down.exact="focusNext(todo,task)" v-on:keydown.prevent.up.exact="focusPrev(todo,task)" v-on:keydown.prevent.alt.down="swapNextC(todo,task)" v-on:keydown.prevent.alt.up="swapPrevC(todo,task)" @keyup.enter="insertTask(todo, task)" @keypress="setcanPress($event)" @keydown="escape($event, todo, task)" @keydown.delete="setcanDelete($event)" @keyup="keyUp(todo, task)" v-on:click="clickLink(todo, task)" v-bind:class="{donename: task.done}">
+                        <button class="task-rm" v-on:click="rmTaskBtn(todo, task)">×</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+    <script src="./vue.min.js"></script>
+    <script>
+        const app = new Vue({
+            el: "#app",
+            data: {
+                x: 0,
+                y: 0,
+                dragging: false,
+                canEnter: false,
+                canDelete: false,
+                todos: [],
+                count: 0,
+                zIndex: 1000,
+                syncInterval: "",
+            },
+            methods: {
+                escape: function (e, todo, task) {
+                    // escでフォーカス外す
+                    if (e.key === "Escape") {
+                        if (document.activeElement) {
+                            // フォーカスしているのがTodoタイトルでなければ
+                            if (task != 0) {
+                                // URLリンク機能
+                                var index = this.todos.indexOf(todo)
+                                var index_c = this.todos[index].tasks.indexOf(task)
+                                if (this.todos[index].tasks[index_c].name.indexOf("http") === 0) {
+                                    this.todos[index].tasks[index_c].isLink = true
+                                    console.log(this.todos[index].tasks[index_c].isLink)
+                                    this.saveLocal()
+                                }
+                            }
+                            document.activeElement.blur()
+                        }
+                    }
+                },
+                saveLocal: function () {
+                    localStorage.setItem("todos", JSON.stringify(this.todos))
+                    localStorage.setItem("count", this.count)
+                },
+                restoreLocal: function () {
+                    var tmp = localStorage.getItem("todos")
+                    var tmp_count = localStorage.getItem("count")
+                    // tmpがnull出なければ
+                    if (tmp) {
+                        if (tmp_count) {
+                            this.todos = JSON.parse(tmp)
+                            this.count = tmp_count
+                        }
+                    }
+                },
+                countTasks: function (index) {
+                    var num = 0;
+                    for (let i = 0; i < index; i++) {
+                        num += this.todos[i].tasks.length
+                    }
+                    return num
+                },
+                setcanPress: function (event) {
+                    if (event.key === 'Enter') {
+                        this.canEnter = true
+                    }
+                },
+                setcanDelete: function (event) {
+                    if (event.keyCode === 8) {
+                        this.canDelete = true
+                    }
+                },
+                keyUp: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (this.canDelete) {
+                        if (this.todos[index].tasks[index_c].length === 0) {
+                            this.todos[index].tasks.splice(index_c, 1);
+                            var num = this.countTasks(index)
+                            if (index_c === 0) {
+                                document.getElementsByClassName("todo-ttl")[index].focus();
+                            } else {
+                                var num = this.countTasks(index)
+                                num += index_c
+                                document.getElementsByClassName("task-name")[num - 1].focus()
+                            }
+                        } else {
+                            this.todos[index].tasks[index_c].length = this.todos[index].tasks[index_c].name.length
+                        }
+                        this.canDelete = false
+                    } else {
+                        this.todos[index].tasks[index_c].length = this.todos[index].tasks[index_c].name.length
+                    }
+                    this.saveLocal()
+                },
+                addTodo: function () {
+                    this.todos.push({ id: this.count, top: "", left: "", name: "", tasks: [] });
+                    this.$nextTick(function () {
+                        document.getElementsByClassName("todo-ttl")[this.todos.length - 1].focus();
+                        // 新規Todoを最上面にする
+                        document.getElementsByClassName("drag-and-drop")[this.todos.length - 1].style.zIndex = this.zIndex + 1;
+                        this.zIndex++
+                    })
+
+                    this.count++
+                    this.saveLocal()
+                },
+                removeTodo: function (todo) {
+                    var index = this.todos.indexOf(todo);
+                    this.todos.splice(index, 1);
+                    this.saveLocal()
+                },
+                ttlDown: function (todo) {
+                    var index = this.todos.indexOf(todo);
+                    if (this.todos[index].tasks.length > 0) {
+                        var num = this.countTasks(index)
+                        document.getElementsByClassName("task-name")[num].focus()
+                    }
+                },
+                ttlEnter: function (todo) {
+                    if (this.canEnter) {
+                        var index = this.todos.indexOf(todo);
+                        this.todos[index].tasks.splice(0, 0, { done: false, isChild: false, isLink: false, name: "", length: 0 })
+                        var num = 0
+                        if (index > 0) {
+                            num = this.countTasks(index)
+                        }
+                        this.$nextTick(function () {
+                            document.getElementsByClassName("task-name")[num].focus()
+                            this.canEnter = false
+                        })
+                    }
+                },
+                focusPrev: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (index_c === 0) {
+                        document.getElementsByClassName("todo-ttl")[index].focus();
+                    } else {
+                        var num = this.countTasks(index)
+                        num += index_c
+                        document.getElementsByClassName("task-name")[num - 1].focus()
+                    }
+                },
+                focusNext: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (this.todos[index].tasks.length != index_c + 1) {
+                        var num = this.countTasks(index)
+                        num += index_c
+                        document.getElementsByClassName("task-name")[num + 1].focus()
+                    }
+                },
+                rmTaskBtn: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (!this.todos[index].tasks[index_c].isChild) {
+                        while (this.todos[index].tasks[index_c + 1] && this.todos[index].tasks[index_c + 1].isChild) {
+                            this.todos[index].tasks.splice(index_c + 1, 1);
+                        }
+                    }
+                    this.todos[index].tasks.splice(index_c, 1);
+                    this.saveLocal()
+                },
+                enChildTask: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    this.todos[index].tasks[index_c].isChild = true;
+                    this.saveLocal()
+                },
+                deChildTask: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    this.todos[index].tasks[index_c].isChild = false;
+                    this.saveLocal()
+                },
+                clickLink: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (this.todos[index].tasks[index_c].isLink === true) {
+                        window.open(this.todos[index].tasks[index_c].name, '_blank')
+                    }
+                },
+                doneTask: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (this.todos[index].tasks[index_c].done === false) {
+                        this.todos[index].tasks[index_c].done = true;
+                    } else {
+                        this.todos[index].tasks[index_c].done = false;
+                    }
+                    this.saveLocal()
+                },
+                insertTask: function (todo, task) {
+                    if (this.canEnter) {
+                        var index = this.todos.indexOf(todo);
+                        var index_c = this.todos[index].tasks.indexOf(task);
+                        // URLリンク機能
+                        if (this.todos[index].tasks[index_c].name.indexOf("http") === 0) {
+                            this.todos[index].tasks[index_c].isLink = true;
+                        }
+                        if (this.todos[index].tasks[index_c].isChild === true) {
+                            this.todos[index].tasks.splice(index_c + 1, 0, { done: false, isChild: true, name: "", length: 0 })
+                        } else {
+                            this.todos[index].tasks.splice(index_c + 1, 0, { done: false, isChild: false, name: "", length: 0 })
+                        }
+                        this.$nextTick(function () {
+                            var num = this.countTasks(index) + index_c
+                            document.getElementsByClassName("task-name")[num + 1].focus()
+                        })
+                        this.canEnter = false
+                        this.saveLocal()
+                    }
+                },
+                swapNext: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (this.todos[index].tasks.length != index_c + 1) {
+                        var tmp = this.todos[index].tasks[index_c]
+                        this.todos[index].tasks.splice(index_c, 1, this.todos[index].tasks[index_c + 1])
+                        this.todos[index].tasks.splice(index_c + 1, 1, tmp)
+                        var num = this.countTasks(index) + index_c
+                        document.getElementsByClassName("task-name")[num + 1].focus()
+                        this.saveLocal()
+                    }
+                },
+                swapPrev: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (index_c != 0) {
+                        var tmp = this.todos[index].tasks[index_c]
+                        this.todos[index].tasks.splice(index_c, 1, this.todos[index].tasks[index_c - 1])
+                        this.todos[index].tasks.splice(index_c - 1, 1, tmp)
+                        var num = this.countTasks(index) + index_c
+                        document.getElementsByClassName("task-name")[num - 1].focus()
+                        this.saveLocal()
+                    }
+                },
+                swapNextC: function (todo, task) {
+                    var index = this.todos.indexOf(todo)
+                    var index_c = this.todos[index].tasks.indexOf(task)
+                    if (todo.tasks.length != index_c + 1) {
+                        var family = []
+                        var target = 0
+                        family.push(todo.tasks[index_c])
+                        if (!todo.tasks[index_c].isChild) {
+                            while (todo.tasks[index_c + 1] && todo.tasks[index_c + 1].isChild) {
+                                family.push(todo.tasks[index_c + 1])
+                                todo.tasks.splice(index_c + 1, 1)
+                            }
+                            if (todo.tasks[index_c + 2] && todo.tasks[index_c + 2].isChild) {
+                                while (todo.tasks[index_c + 2 + target] && todo.tasks[index_c + 2 + target].isChild) {
+                                    target++
+                                }
+                            }
+                        }
+                        todo.tasks.splice(index_c, 1)
+                        for (i = 0; i < family.length; i++) {
+                            todo.tasks.splice(index_c + 1 + target + i, 0, family[i])
+                        }
+                        var num = this.countTasks(index) + index_c + 1 + target
+                        document.getElementsByClassName("task-name")[num].focus()
+                        this.saveLocal()
+                    }
+                },
+                swapPrevC: function (todo, task) {
+                    var index = this.todos.indexOf(todo);
+                    var index_c = this.todos[index].tasks.indexOf(task);
+                    if (index_c != 0) {
+                        var family = []
+                        var target = 0
+                        family.push(todo.tasks[index_c])
+                        if (!todo.tasks[index_c].isChild) {
+                            while (todo.tasks[index_c + 1] && todo.tasks[index_c + 1].isChild) {
+                                family.push(todo.tasks[index_c + 1])
+                                todo.tasks.splice(index_c + 1, 1)
+                            }
+                            if (todo.tasks[index_c - 1].isChild) {
+                                while (todo.tasks[index_c - target - 1] && todo.tasks[index_c - target - 1].isChild) {
+                                    target++
+                                }
+                            }
+                        }
+                        todo.tasks.splice(index_c, 1)
+                        for (i = 0; i < family.length; i++) {
+                            todo.tasks.splice(index_c - target - 1 + i, 0, family[i])
+                        }
+                        var num = this.countTasks(index) + index_c - target
+                        document.getElementsByClassName("task-name")[num - 1].focus()
+                        this.saveLocal()
+                    }
+                },
+                insertFamily: function (index, index_c, family) {
+                    for (i = 0; i < family.length; i++) {
+                        this.todos[index].tasks.splice(index_c - 1 + i, 0, family[i])
+                    }
+                },
+                saveCoord: function () {
+                    for (let i = 0; i < this.todos.length; i++) {
+                        var item = document.getElementsByClassName("drag-and-drop")[i]
+                        this.todos[i].top = item.style.top
+                        this.todos[i].left = item.style.left
+                    }
+                },
+                restoreCoord: function () {
+                    for (let i = 0; i < this.todos.length; i++) {
+                        var item = document.getElementsByClassName("drag-and-drop")[i]
+                        item.style.top = this.todos[i].top
+                        item.style.left = this.todos[i].left
+                    }
+                },
+                addClass: function (todo) {
+                    //クラス名に .drag を追加
+                    var index = this.todos.indexOf(todo);
+                    var tmp = document.getElementsByClassName("drag-and-drop")[index]
+                    if (tmp) {
+                        tmp.classList.add("drag");
+                    }
+                },
+                mdown: function (e) {
+                    var drag = document.getElementsByClassName("drag")[0];
+
+                    //タッチデイベントとマウスのイベントの差異を吸収
+                    if (e.type === "mousedown") {
+                        var event = e;
+                    } else {
+                        var event = e.changedTouches[0];
+                    }
+
+                    if (drag) {
+                        //要素内の相対座標を取得
+                        this.x = event.pageX - drag.offsetLeft + 10;
+                        this.y = event.pageY - drag.offsetTop + 10;
+
+                        drag.style.zIndex = this.zIndex + 1;
+                        this.zIndex++
+                    }
+                },
+                mmove: function (e) {
+
+                    //ドラッグしている要素を取得
+                    var drag = document.getElementsByClassName("drag")[0];
+
+                    if (typeof drag === "undefined") {
+                        return;
+                    } else if (document.activeElement.nodeName != "INPUT" && document.activeElement.nodeName != "BUTTON") {
+                        //同様にマウスとタッチの差異を吸収
+                        if (e.type === "mousemove") {
+                            var event = e;
+                        } else {
+                            var event = e.changedTouches[0];
+                        }
+
+                        //フリックしたときに画面を動かさないようにデフォルト動作を抑制
+                        e.preventDefault();
+
+                        // event.pageX, event.pageY: マウスの絶対座標(body?の左上がpageX:0 pageY:0)
+                        // this.x, this.y: マウスのtodo内座標(todoの左上がx:0 y:0)
+                        //マウスが動いた場所に要素を動かす
+                        if ((event.pageY - this.y + drag.clientHeight) > window.innerHeight - 20) {
+                            // 下にはみ出すのを防ぐ
+                            drag.style.top = window.innerHeight - drag.clientHeight - 20 + "px";
+                        } else if ((event.pageY - this.y) < 5) {
+                            //上にはみ出すのを防ぐ
+                            drag.style.top = "5px"
+                        } else {
+                            drag.style.top = event.pageY - this.y + "px";
+                        }
+                        if ((event.pageX - this.x + drag.clientWidth) > window.innerWidth - 20) {
+                            //右にはみ出すのを防ぐ
+                            drag.style.left = window.innerWidth - drag.clientWidth - 20 + "px";
+                        } else if ((event.pageX - this.x) < 5) {
+                            //左にはみ出すのを防ぐ
+                            drag.style.left = "5px"
+                        } else {
+                            drag.style.left = event.pageX - this.x + "px";
+                        }
+
+                        this.saveCoord()
+                        this.saveLocal()
+                    }
+                },
+                mup: function (e) {
+                    var drag = document.getElementsByClassName("drag")[0];
+
+                    if (typeof drag === "undefined") {
+                        return;
+                    } else {
+                        //クラス名 .drag も消す
+                        drag.classList.remove("drag");
+                        this.saveCoord()
+                        this.saveLocal()
+                    }
+                },
+                sync: function () {
+                    if (document.activeElement.nodeName != "INPUT") {
+                        this.restoreLocal()
+                        this.$nextTick(function () {
+                            this.restoreCoord()
+                        })
+                    }
+                }
+            },
+            created() {
+                this.restoreLocal()
+                this.$nextTick(function () {
+                    this.restoreCoord()
+                    this.syncInterval = setInterval(this.sync, 10)
+                })
+            },
+        })
+
+
+    </script>
+</body>
+
+</html>
