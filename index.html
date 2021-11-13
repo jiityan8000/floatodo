@@ -283,7 +283,6 @@
                                 var index_c = this.todos[index].tasks.indexOf(task)
                                 if (this.todos[index].tasks[index_c].name.indexOf("http") === 0) {
                                     this.todos[index].tasks[index_c].isLink = true
-                                    console.log(this.todos[index].tasks[index_c].isLink)
                                     this.saveLocal()
                                 }
                             }
@@ -431,6 +430,8 @@
                     var index = this.todos.indexOf(todo);
                     var index_c = this.todos[index].tasks.indexOf(task);
                     if (this.todos[index].tasks[index_c].isLink === true) {
+                        // focus外す
+                        document.activeElement.blur()
                         window.open(this.todos[index].tasks[index_c].name, '_blank')
                     }
                 },
